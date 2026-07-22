@@ -5,11 +5,10 @@
 
 ## O negócio
 
-Vertex cria sites sob medida para restaurantes, hotéis e empresas. Operação de **duas pessoas**,
-com base em Curitiba (PR) e atendimento a todo o Brasil:
-
-- **Nicoly** — design e animações. Consentiu em aparecer nomeada no site (jul/2026)
-- **Eduardo** — desenvolvimento; é dele o WhatsApp de contato
+Vertex cria sites sob medida para restaurantes, hotéis e empresas, com base em Curitiba (PR)
+e atendimento a todo o Brasil. Nos bastidores a operação é de duas pessoas (design/animações
+e desenvolvimento), mas **o site fala em voz de estúdio — "a Vertex", "nós" — sem nomear
+pessoas** (decisão do Eduardo, jul/2026, revertendo a diretriz anterior de plural nomeado).
 
 Orçamento por projeto, calculado a partir de escopo e tempo; **não há tabela de preços e o site
 não publica valores** (decisão do Eduardo, jul/2026).
@@ -29,11 +28,10 @@ Contatos: WhatsApp (41) 99741-1544 · Vertex.page@outlook.com · Instagram @Vert
 3. **Arquivo único.** `index.html` com CSS e JS embutidos. Sem build, sem framework, sem
    dependência de pacote. `vercel.json` é o único arquivo de apoio.
 4. **Sem preço na página.** O caminho é o qualificador → WhatsApp com escopo já montado.
-5. **Plural nomeado, nunca plural anônimo.** "Somos dois: a Nicoly e o Eduardo" — jamais
-   "somos um estúdio" ou "nossa equipe". Para o cliente pequeno, falar direto com quem executa
-   é vantagem competitiva; o plural vago soa como agência genérica e foi o que gerou a prova
-   social inventada da versão anterior. Se em algum momento a Nicoly pedir para não ser nomeada,
-   trocar por "somos duas pessoas" — nunca voltar ao "nós" indefinido.
+5. **Voz de estúdio, sem nomes.** "A Vertex", "nós" — sem citar Nicoly ou Eduardo no conteúdo
+   público (decisão do Eduardo, jul/2026). Tom profissional de empresa. Não inventar tamanho de
+   equipe nem cargos específicos ("nosso time de 10", "departamento de X") — a operação é enxuta;
+   descrever capacidades (design estratégico, animações, desenvolvimento), não headcount.
 
 ## Identidade
 
