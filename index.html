@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
+<html lang="pt-BR"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vertex | Criação de sites para pequenas e médias empresas, Curitiba</title>
@@ -23,7 +22,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230d0c0a'/%3E%3Cpolygon points='17,16 48.2,45 48.2,83' fill='%23d9a441'/%3E%3Cpolygon points='83,16 51.8,45 51.8,83' fill='%23966e2e'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -42,6 +41,14 @@
   --brass:#d9a441;
   --brass-bright:#e8b455;
   --brass-shadow:#966e2e;
+
+  /* acento secundário, frio e dessaturado (verde-cinza, tipo pátina de metal
+     envelhecido). Só para respiro: hover, detalhes e a barra de comparação.
+     Não compete com o latão nem puxa para azul de SaaS. */
+  --patina:#7e948c;              /* oklch ~0.62 0.02 168 */
+  --patina-bright:#95a9a1;       /* hover e foco */
+  --patina-line:rgba(126,148,140,.30);
+  --patina-soft:rgba(126,148,140,.12);
 
   /* texto, todos verificados >= 4.5:1 sobre --bg */
   --ink:#f7f4ef;        /* 18:1  */
@@ -138,10 +145,25 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
    ============================================================ */
 .card{
   background:var(--bg-raised);border:1px solid var(--line);border-radius:var(--radius-lg);
-  padding:1.7rem 1.5rem;
+  padding:1.7rem 1.5rem;position:relative;isolation:isolate;--mx:50%;--my:50%;
   transition:border-color var(--t) var(--ease-out),transform var(--t) var(--ease-out),background var(--t) var(--ease-out);
 }
+/* Spotlight na cor da marca: um brilho radial que segue o ponteiro (ou o toque),
+   sem o arco-íris do componente original, para não brigar com a identidade quente.
+   Puro overlay decorativo (pointer-events:none), não mexe em contraste nem no texto. */
+.card::before,.card::after{content:"";position:absolute;inset:0;border-radius:inherit;
+  pointer-events:none;z-index:-1;opacity:0;transition:opacity var(--t) var(--ease-out)}
+.card::after{background:radial-gradient(220px 220px at var(--mx) var(--my),rgba(217,164,65,.16),transparent 60%)}
+.card::before{padding:1px;
+  background:radial-gradient(180px 180px at var(--mx) var(--my),var(--brass-bright),transparent 60%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+          mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude}
+.card:hover::before,.card:hover::after,
+.card.is-lit::before,.card.is-lit::after{opacity:1}
 .card:hover{border-color:var(--line-hover);transform:translateY(-4px);background:var(--bg-raised-2)}
+/* No toque não há hover: o tap dá o mesmo retorno visual, sem elevação presa. */
+.card:active{border-color:var(--line-hover);background:var(--bg-raised-2)}
 .card h3{margin:.85rem 0 .4rem}
 .card p{font-size:.9rem;color:var(--ink-mute);line-height:1.62}
 
@@ -229,6 +251,12 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 .hero h1{margin:1.4rem 0 1.1rem;max-width:14ch}
 .hero .lead{margin-bottom:2rem;max-width:48ch}
 .hero__actions{display:flex;gap:.8rem;flex-wrap:wrap}
+/* Isca de topo: quem ainda está pesquisando entra pelo Processo, sem WhatsApp. */
+.hero__soft{display:inline-flex;align-items:center;gap:.35rem;margin-top:1.35rem;min-height:44px;
+  color:var(--ink-mute);font-size:.85rem;font-weight:500;text-decoration:underline;
+  text-decoration-color:var(--patina-line);text-underline-offset:4px;max-width:46ch;
+  transition:color var(--t-fast) var(--ease-out),text-decoration-color var(--t-fast) var(--ease-out)}
+.hero__soft:hover,.hero__soft:active{color:var(--patina-bright);text-decoration-color:var(--patina)}
 .hero__trust{display:flex;gap:1.5rem;margin-top:2.3rem;flex-wrap:wrap;
   font-size:var(--step-small);color:var(--ink-mute)}
 .hero__trust span{display:inline-flex;align-items:center;gap:.45rem}
@@ -236,12 +264,17 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 
 .hero__mark{position:relative;min-height:min(430px,62vw);display:flex;align-items:center;justify-content:center;
   animation:vFade 1s var(--ease-out) .15s both}
-#markCanvas{display:block;width:100%;height:min(430px,62vw)}
-/* Sob movimento reduzido a marca não voa: aparece montada, com um fade curto. */
-#markCanvas.mark-fade{opacity:0;transition:opacity .55s var(--ease-out)}
-#markCanvas.mark-fade.is-in{opacity:1}
+/* Escondido até o JS decidir animar. Sem JS, o V estático abaixo é a base. */
+#markCanvas{display:none;width:100%;height:min(430px,62vw)}
+/* Estado estático com peso: o V desenhado, glow atrás e sombra, sempre pronto
+   como base (funciona até sem JS) e como fallback quando a animação não roda. */
 .hero__mark-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.hero__mark-fallback svg{width:min(240px,52%);height:auto}
+.hero__mark-fallback::before{content:"";position:absolute;width:72%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,rgba(217,164,65,.13),transparent 66%)}
+.hero__mark-fallback svg{position:relative;width:min(300px,64%);height:auto;
+  filter:drop-shadow(0 22px 46px rgba(0,0,0,.55))}
+.hero__mark-fallback.is-fade{opacity:0}
+.hero__mark-fallback.is-fade.is-in{opacity:1;transition:opacity .6s var(--ease-out)}
 
 /* ============================================================
    ESTUDOS (maquetes)
@@ -249,6 +282,7 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 .study{background:var(--bg-raised);border:1px solid var(--line);border-radius:var(--radius-lg);
   overflow:hidden;transition:border-color var(--t) var(--ease-out),transform var(--t) var(--ease-out)}
 .study:hover{border-color:var(--line-hover);transform:translateY(-5px)}
+.study:active{border-color:var(--line-hover)}
 .study__stage{aspect-ratio:16/11;display:flex;align-items:flex-end;justify-content:center;
   overflow:hidden;padding:1.4rem 1.4rem 0}
 .study__mock{width:100%;border-radius:8px 8px 0 0;overflow:hidden;
@@ -263,6 +297,39 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 .study__body h3{margin:.35rem 0 .4rem}
 .study__body p{font-size:.9rem;color:var(--ink-mute);line-height:1.62}
 .pill{font-size:.4rem;font-weight:700;padding:.22rem .55rem;border-radius:20px;letter-spacing:.06em}
+
+/* ============================================================
+   PROCESSO, timeline vertical numerada (quebra a monotonia dos cards)
+   ============================================================ */
+.timeline{list-style:none;margin:2.8rem 0 0;padding:0;position:relative;--num-w:clamp(3.2rem,9vw,5.2rem)}
+/* Trilho em pátina, mascarado pelo fundo dos números (que têm bg do body),
+   então a linha só aparece nos vãos entre os passos. */
+.timeline::before{content:"";position:absolute;top:1rem;bottom:1.2rem;left:calc(var(--num-w)/2);
+  width:2px;transform:translateX(-1px);
+  background:linear-gradient(to bottom,var(--patina-line),var(--patina-line) 86%,transparent)}
+.timeline__step{position:relative;display:grid;grid-template-columns:var(--num-w) 1fr;
+  gap:clamp(1rem,3vw,2rem);align-items:start;padding:.5rem 0}
+.timeline__step+.timeline__step{margin-top:clamp(1.4rem,3.5vw,2.4rem)}
+.timeline__num{font-family:var(--font-display);font-weight:600;color:var(--brass);
+  font-size:clamp(2.4rem,1.8rem + 3vw,4rem);line-height:.85;letter-spacing:-.04em;text-align:center;
+  background:var(--bg);padding:.1rem 0;position:relative;z-index:2;font-variant-numeric:tabular-nums}
+.timeline__body{padding-top:.55rem;max-width:52ch}
+.timeline__body h3{margin:0 0 .4rem;font-size:clamp(1.1rem,1rem + .5vw,1.35rem)}
+.timeline__body p{color:var(--ink-mute);font-size:.92rem;line-height:1.66}
+
+/* Ancoragem de prazo: Vertex em latão, mercado em pátina. Sem número inventado. */
+.anchor{margin-top:clamp(2.8rem,6vw,4rem);max-width:600px;background:var(--bg-raised);
+  border:1px solid var(--line);border-radius:var(--radius-lg);padding:clamp(1.3rem,3.5vw,1.9rem)}
+.anchor__title{display:flex;align-items:center;gap:.55rem;color:var(--ink);font-weight:600;
+  font-size:.92rem;margin-bottom:1.1rem}
+.anchor__ico{width:17px;height:17px;color:var(--brass);flex:none}
+.anchor__row+.anchor__row{margin-top:.85rem}
+.anchor__label{display:block;font-size:.76rem;color:var(--ink-mute);margin-bottom:.4rem}
+.anchor__bar{display:inline-flex;align-items:center;width:var(--w);min-width:max-content;
+  height:2.4rem;padding:0 .9rem;border-radius:9px;font-weight:600;font-size:.82rem}
+.anchor__bar--brass{background:var(--brass);color:#17130c}
+.anchor__bar--mkt{background:var(--patina-soft);color:var(--ink-soft);border:1px solid var(--patina-line)}
+.anchor__note{margin-top:1.1rem;line-height:1.6}
 
 /* ============================================================
    QUALIFICADOR
@@ -294,6 +361,7 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 .faq details{background:var(--bg-raised);border:1px solid var(--line);border-radius:var(--radius);
   overflow:hidden;transition:border-color var(--t) var(--ease-out)}
 .faq details:hover{border-color:var(--line-hover)}
+.faq details:active{border-color:var(--line-hover)}
 .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
   gap:1rem;padding:1.15rem 1.3rem;font-weight:600;font-size:.95rem;color:var(--ink);font-family:var(--font-sans)}
 .faq summary::-webkit-details-marker{display:none}
@@ -356,7 +424,7 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
   /* Exceção deliberada à regra acima. O que desencadeia enjoo e vertigem é
      deslocamento amplo na tela, não variação de opacidade, então a marca
      ganha um surgimento suave em vez de aparecer como imagem morta. */
-  #markCanvas.mark-fade{transition-duration:.55s !important}
+  .hero__mark-fallback.is-fade{transition-duration:.6s !important}
 }
 </style>
 
@@ -394,6 +462,8 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 </script>
 </head>
 
+
+
 <body class="no-js">
 
 <a class="skip" href="#main">Pular para o conteúdo</a>
@@ -402,40 +472,40 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
     <symbol id="i-whatsapp" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.465 3.488"/>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.465 3.488"></path>
     </symbol>
     <symbol id="i-instagram" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0m0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07s-3.586-.015-4.859-.074c-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844s.016-3.586.061-4.861c.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06zm0 3.678a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324M12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8m7.846-10.405a1.441 1.441 0 0 1-2.88 0 1.44 1.44 0 0 1 2.88 0"/>
+      <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0m0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07s-3.586-.015-4.859-.074c-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844s.016-3.586.061-4.861c.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06zm0 3.678a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324M12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8m7.846-10.405a1.441 1.441 0 0 1-2.88 0 1.44 1.44 0 0 1 2.88 0"></path>
     </symbol>
     <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+      <rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
     </symbol>
-    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
-    <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
-    <symbol id="i-arrow-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></symbol>
-    <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
-    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10"/></symbol>
-    <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
-    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
-    <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
-    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
-    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
-    <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></symbol>
-    <symbol id="i-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18M10 6h4M10 10h4M10 14h4M10 18h4M2 22h20"/></symbol>
-    <symbol id="i-brush" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02"/></symbol>
-    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
-    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></symbol>
-    <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4M2 22l4-4"/><circle cx="10.5" cy="13.5" r="4.5"/></symbol>
-    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
-    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
-    <symbol id="i-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
-    <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></symbol>
-    <symbol id="i-route" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M16 7v1a2 2 0 0 1-2 2H8a2 2 0 0 0-2 2v3"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"></path></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"></path></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10"></path></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"></rect><path d="M12 18h.01"></path></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"></path></symbol>
+    <symbol id="i-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18M10 6h4M10 10h4M10 14h4M10 18h4M2 22h20"></path></symbol>
+    <symbol id="i-brush" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"></path><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02"></path></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"></path><circle cx="12" cy="12" r="3"></circle></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4M2 22l4-4"></path><circle cx="10.5" cy="13.5" r="4.5"></circle></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5M12 22V12"></path></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2"></circle><circle cx="18" cy="5" r="2"></circle><path d="M16 7v1a2 2 0 0 1-2 2H8a2 2 0 0 0-2 2v3"></path></symbol>
     <symbol id="i-mark" viewBox="0 0 100 100">
-      <polygon points="17,16 48.2,45 48.2,83" fill="var(--brass,#d9a441)"/>
-      <polygon points="83,16 51.8,45 51.8,83" fill="var(--brass-shadow,#966e2e)"/>
+      <polygon points="17,16 48.2,45 48.2,83" fill="var(--brass,#d9a441)"></polygon>
+      <polygon points="83,16 51.8,45 51.8,83" fill="var(--brass-shadow,#966e2e)"></polygon>
     </symbol>
   </defs>
 </svg>
@@ -444,7 +514,7 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 <nav class="nav" id="siteNav">
   <div class="nav__inner">
     <a href="#hero" class="brand" aria-label="Vertex, início">
-      <svg aria-hidden="true"><use href="#i-mark"/></svg>
+      <svg aria-hidden="true"><use href="#i-mark"></use></svg>
       Vertex
     </a>
     <div class="nav__links">
@@ -455,8 +525,8 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
       <a href="#orcamento" class="btn btn--primary btn--sm">Montar orçamento</a>
     </div>
     <button class="nav__burger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobileMenu">
-      <svg class="icon-menu" aria-hidden="true"><use href="#i-menu"/></svg>
-      <svg class="icon-close" aria-hidden="true"><use href="#i-close"/></svg>
+      <svg class="icon-menu" aria-hidden="true"><use href="#i-menu"></use></svg>
+      <svg class="icon-close" aria-hidden="true"><use href="#i-close"></use></svg>
     </button>
   </div>
   <div class="mobile-menu" id="mobileMenu">
@@ -479,24 +549,25 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
       <p class="lead">Unimos design estratégico, animações envolventes e desenvolvimento robusto de aplicações para impulsionar a presença digital de pequenas e médias empresas dos mais variados segmentos. Criamos sites sob medida para pequenas e médias empresas de qualquer segmento, base em Curitiba, atendendo o Brasil inteiro, com soluções que geram resultados reais, do briefing ao lançamento.</p>
       <div class="hero__actions">
         <a href="#orcamento" class="btn btn--primary">Montar meu orçamento</a>
-        <a href="#servicos" class="btn btn--ghost"><svg aria-hidden="true"><use href="#i-arrow-down"/></svg>Ver serviços</a>
+        <a href="#servicos" class="btn btn--ghost"><svg aria-hidden="true"><use href="#i-arrow-down"></use></svg>Ver serviços</a>
       </div>
+      <a class="hero__soft" href="#processo">Ainda pesquisando? Veja como trabalhamos, sem falar com ninguém agora.</a>
       <div class="hero__trust">
-        <span><svg aria-hidden="true"><use href="#i-check"/></svg>Entrega em até 8 dias</span>
-        <span><svg aria-hidden="true"><use href="#i-check"/></svg>Domínio e hospedagem inclusos</span>
+        <span><svg aria-hidden="true"><use href="#i-check"></use></svg>Entrega em até 8 dias</span>
+        <span><svg aria-hidden="true"><use href="#i-check"></use></svg>Domínio e hospedagem inclusos</span>
       </div>
     </div>
     <div class="hero__mark">
       <canvas id="markCanvas" aria-hidden="true"></canvas>
-      <div class="hero__mark-fallback" id="markFallback" hidden>
-        <svg viewBox="0 0 100 100" role="img" aria-label="Marca da Vertex: um V formado por duas faces que se encontram numa aresta central"><use href="#i-mark"/></svg>
+      <div class="hero__mark-fallback" id="markFallback">
+        <svg viewBox="0 0 100 100" role="img" aria-label="Marca da Vertex: um V formado por duas faces que se encontram numa aresta central"><use href="#i-mark"></use></svg>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ============================================================ SOBRE -->
-<section class="section" id="sobre" data-reveal>
+<section class="section" id="sobre" data-reveal="">
   <span class="eyebrow">Quem faz o seu site</span>
   <h2>Você fala direto com quem desenha e escreve o código</h2>
   <div class="grid grid--2" style="margin-top:2.5rem;align-items:start">
@@ -505,12 +576,12 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
       <p class="lead" style="margin-bottom:1.7rem">Trabalhamos com <strong>pequenas e médias empresas</strong> de qualquer segmento que precisam de uma presença online que não pareça improvisada. Estamos em Curitiba e atendemos todo o Brasil de forma remota, e, quando o projeto pede, também fazemos <strong>visitas presenciais</strong>.</p>
       <div class="grid grid--2">
         <div class="card">
-          <div class="card-icon"><svg aria-hidden="true"><use href="#i-users"/></svg></div>
+          <div class="card-icon"><svg aria-hidden="true"><use href="#i-users"></use></svg></div>
           <h3>Um só interlocutor</h3>
           <p>Do primeiro contato ao suporte pós-lançamento, sempre a mesma equipe cuidando do projeto.</p>
         </div>
         <div class="card">
-          <div class="card-icon"><svg aria-hidden="true"><use href="#i-pin"/></svg></div>
+          <div class="card-icon"><svg aria-hidden="true"><use href="#i-pin"></use></svg></div>
           <h3>Curitiba, Brasil inteiro</h3>
           <p>Base no Paraná, atendimento remoto para qualquer estado.</p>
         </div>
@@ -518,22 +589,22 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
     </div>
     <div class="grid grid--2">
       <div class="card">
-        <div class="card-icon"><svg aria-hidden="true"><use href="#i-zap"/></svg></div>
+        <div class="card-icon"><svg aria-hidden="true"><use href="#i-zap"></use></svg></div>
         <h3>Carregamento rápido</h3>
         <p>Site leve de verdade. Este que você está lendo abre em menos de um segundo.</p>
       </div>
       <div class="card">
-        <div class="card-icon"><svg aria-hidden="true"><use href="#i-phone"/></svg></div>
+        <div class="card-icon"><svg aria-hidden="true"><use href="#i-phone"></use></svg></div>
         <h3>Feito para o celular</h3>
         <p>A maioria dos seus clientes vai chegar pelo telefone. O projeto começa por ali.</p>
       </div>
       <div class="card">
-        <div class="card-icon"><svg aria-hidden="true"><use href="#i-building"/></svg></div>
+        <div class="card-icon"><svg aria-hidden="true"><use href="#i-building"></use></svg></div>
         <h3>Presença profissional</h3>
         <p>Um site que passa a mesma impressão que o seu negócio passa pessoalmente.</p>
       </div>
       <div class="card">
-        <div class="card-icon"><svg aria-hidden="true"><use href="#i-brush"/></svg></div>
+        <div class="card-icon"><svg aria-hidden="true"><use href="#i-brush"></use></svg></div>
         <h3>Nada de template</h3>
         <p>Cada projeto é desenhado do zero para o seu negócio, não é tema comprado.</p>
       </div>
@@ -542,28 +613,28 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 </section>
 
 <!-- ============================================================ SERVIÇOS -->
-<section class="section" id="servicos" data-reveal>
+<section class="section" id="servicos" data-reveal="">
   <span class="eyebrow">O que fazemos</span>
   <h2>Serviços</h2>
   <p class="lead" style="margin:.9rem 0 2.6rem">Soluções completas para sua presença digital, do design à velocidade.</p>
   <div class="grid grid--4">
     <div class="card">
-      <div class="card-icon"><svg aria-hidden="true"><use href="#i-globe"/></svg></div>
+      <div class="card-icon"><svg aria-hidden="true"><use href="#i-globe"></use></svg></div>
       <h3>Sites institucionais</h3>
       <p>Site completo com design exclusivo, construído em torno da identidade da sua marca.</p>
     </div>
     <div class="card">
-      <div class="card-icon"><svg aria-hidden="true"><use href="#i-target"/></svg></div>
+      <div class="card-icon"><svg aria-hidden="true"><use href="#i-target"></use></svg></div>
       <h3>Landing pages</h3>
       <p>Página única focada em conversão, com texto estratégico e chamadas certeiras.</p>
     </div>
     <div class="card">
-      <div class="card-icon"><svg aria-hidden="true"><use href="#i-phone"/></svg></div>
+      <div class="card-icon"><svg aria-hidden="true"><use href="#i-phone"></use></svg></div>
       <h3>Catálogo e WhatsApp</h3>
       <p>Catálogo de produtos ou serviços, agendamento e contato direto no WhatsApp, sem taxa de aplicativo.</p>
     </div>
     <div class="card">
-      <div class="card-icon"><svg aria-hidden="true"><use href="#i-gauge"/></svg></div>
+      <div class="card-icon"><svg aria-hidden="true"><use href="#i-gauge"></use></svg></div>
       <h3>SEO e velocidade</h3>
       <p>Estrutura otimizada para o Google e carregamento que não faz ninguém desistir.</p>
     </div>
@@ -571,57 +642,80 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 </section>
 
 <!-- ============================================================ PROCESSO -->
-<section class="section" id="processo" data-reveal>
-  <span class="eyebrow">Como funciona</span>
-  <h2>Do primeiro contato ao lançamento</h2>
-  <p class="lead" style="margin:.9rem 0 2.6rem">Processo simples e transparente, você acompanha cada etapa pelo WhatsApp.</p>
-  <div class="grid grid--4">
-    <div class="card">
-      <div class="small" style="color:var(--brass);font-weight:700;letter-spacing:.14em;margin-bottom:.7rem">01</div>
-      <h3>Conversa inicial</h3>
-      <p>Você conta o que precisa. Entendemos o negócio, o público e o objetivo.</p>
+<section class="section" id="processo">
+  <div data-reveal="">
+    <span class="eyebrow">Como funciona</span>
+    <h2>Do primeiro contato ao lançamento</h2>
+    <p class="lead" style="margin:.9rem 0 0">Processo simples e transparente, você acompanha cada etapa pelo WhatsApp.</p>
+  </div>
+  <ol class="timeline">
+    <li class="timeline__step" data-reveal="">
+      <span class="timeline__num">01</span>
+      <div class="timeline__body">
+        <h3>Conversa inicial</h3>
+        <p>Você conta o que precisa. Entendemos o negócio, o público e o objetivo.</p>
+      </div>
+    </li>
+    <li class="timeline__step" data-reveal="">
+      <span class="timeline__num">02</span>
+      <div class="timeline__body">
+        <h3>Proposta fechada</h3>
+        <p>Escopo, valor e prazo definidos por escrito antes de qualquer trabalho começar.</p>
+      </div>
+    </li>
+    <li class="timeline__step" data-reveal="">
+      <span class="timeline__num">03</span>
+      <div class="timeline__body">
+        <h3>Design e código</h3>
+        <p>Você aprova o layout, desenvolvemos, e ajustamos até ficar do seu jeito.</p>
+      </div>
+    </li>
+    <li class="timeline__step" data-reveal="">
+      <span class="timeline__num">04</span>
+      <div class="timeline__body">
+        <h3>No ar e com suporte</h3>
+        <p>Domínio, hospedagem e certificado configurados. Depois, seguimos por perto.</p>
+      </div>
+    </li>
+  </ol>
+
+  <div class="anchor" data-reveal="">
+    <p class="anchor__title"><svg class="anchor__ico" aria-hidden="true"><use href="#i-clock"></use></svg>Prazo, na real</p>
+    <div class="anchor__row">
+      <span class="anchor__label">Vertex</span>
+      <span class="anchor__bar anchor__bar--brass" style="--w:28%">até 8 dias</span>
     </div>
-    <div class="card">
-      <div class="small" style="color:var(--brass);font-weight:700;letter-spacing:.14em;margin-bottom:.7rem">02</div>
-      <h3>Proposta fechada</h3>
-      <p>Escopo, valor e prazo definidos por escrito antes de qualquer trabalho começar.</p>
+    <div class="anchor__row">
+      <span class="anchor__label">Média do mercado</span>
+      <span class="anchor__bar anchor__bar--mkt" style="--w:100%">algumas semanas</span>
     </div>
-    <div class="card">
-      <div class="small" style="color:var(--brass);font-weight:700;letter-spacing:.14em;margin-bottom:.7rem">03</div>
-      <h3>Design e código</h3>
-      <p>Você aprova o layout, desenvolvemos, e ajustamos até ficar do seu jeito.</p>
-    </div>
-    <div class="card">
-      <div class="small" style="color:var(--brass);font-weight:700;letter-spacing:.14em;margin-bottom:.7rem">04</div>
-      <h3>No ar e com suporte</h3>
-      <p>Domínio, hospedagem e certificado configurados. Depois, seguimos por perto.</p>
-    </div>
+    <p class="small muted anchor__note">A contagem começa quando recebemos textos, fotos e as informações do seu negócio, e o prazo exato entra por escrito no orçamento.</p>
   </div>
 </section>
 
 <!-- ============================================================ GARANTIAS -->
-<section class="section" id="garantias" data-reveal>
+<section class="section" id="garantias" data-reveal="">
   <span class="eyebrow">Sem risco para você</span>
   <h2>O que garantimos antes de você decidir</h2>
   <p class="lead" style="margin:.9rem 0 2.6rem">Contratar quem você nunca viu dá medo, e o medo é justificado. Então aqui está exatamente o que está combinado desde o começo.</p>
   <div class="grid grid--4">
     <div class="card">
-      <div class="card-icon"><svg aria-hidden="true"><use href="#i-shield"/></svg></div>
+      <div class="card-icon"><svg aria-hidden="true"><use href="#i-shield"></use></svg></div>
       <h3>Valor fechado antes</h3>
       <p>Escopo, preço e prazo por escrito antes de começarmos. Sem surpresa no meio do caminho.</p>
     </div>
     <div class="card">
-      <div class="card-icon"><svg aria-hidden="true"><use href="#i-eye"/></svg></div>
+      <div class="card-icon"><svg aria-hidden="true"><use href="#i-eye"></use></svg></div>
       <h3>Você aprova o layout</h3>
       <p>O design vem antes do código. Só seguimos em frente quando estiver do seu agrado.</p>
     </div>
     <div class="card">
-      <div class="card-icon"><svg aria-hidden="true"><use href="#i-key"/></svg></div>
+      <div class="card-icon"><svg aria-hidden="true"><use href="#i-key"></use></svg></div>
       <h3>O domínio é seu</h3>
       <p>Registrado no seu nome, com todos os acessos na sua mão. Você nunca fica preso a nós.</p>
     </div>
     <div class="card">
-      <div class="card-icon"><svg aria-hidden="true"><use href="#i-refresh"/></svg></div>
+      <div class="card-icon"><svg aria-hidden="true"><use href="#i-refresh"></use></svg></div>
       <h3>Ajustes inclusos</h3>
       <p>Período de ajustes após a entrega já faz parte do combinado, sem cobrança extra.</p>
     </div>
@@ -629,7 +723,7 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 </section>
 
 <!-- ============================================================ QUALIFICADOR -->
-<section class="section section--narrow" id="orcamento" data-reveal>
+<section class="section section--narrow" id="orcamento" data-reveal="">
   <span class="eyebrow">Orçamento</span>
   <h2>Monte seu escopo em três cliques</h2>
   <p class="lead" style="margin:.9rem 0 2.2rem">Cada site é orçado pelo escopo e pelo tempo que exige, então não existe tabela. Escolha abaixo o que se aplica a você, a mensagem se monta sozinha e já respondemos com um valor fechado.</p>
@@ -668,7 +762,7 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
     <div class="qz__out">
       <p class="qz__preview" id="qzPreview"><span class="qz__empty">Escolha as opções acima e sua mensagem aparece aqui, pronta para enviar.</span></p>
       <a id="qzSend" class="btn btn--primary btn--block" href="https://wa.me/5541997411544" target="_blank" rel="noopener">
-        <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Enviar no WhatsApp
+        <svg aria-hidden="true"><use href="#i-whatsapp"></use></svg>Enviar no WhatsApp
       </a>
       <p class="small muted" style="margin-top:.9rem;text-align:center">Nada é enviado ou armazenado por este site, suas escolhas só montam o texto da mensagem, que abre no seu WhatsApp para você revisar antes de mandar.</p>
     </div>
@@ -676,49 +770,49 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 </section>
 
 <!-- ============================================================ FAQ -->
-<section class="section section--narrow" id="faq" data-reveal>
+<section class="section section--narrow" id="faq" data-reveal="">
   <span class="eyebrow">Dúvidas frequentes</span>
   <h2>As perguntas que todo mundo faz</h2>
   <div class="faq" style="margin-top:2.4rem">
     <details>
-      <summary>Quanto custa um site?<svg aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+      <summary>Quanto custa um site?<svg aria-hidden="true"><use href="#i-chevron"></use></svg></summary>
       <p>Cada projeto é orçado individualmente, porque o valor depende do escopo e do tempo envolvido. O que mais pesa: número de páginas, se precisa de catálogo, agendamento ou pedido online, se o conteúdo e as fotos já existem ou precisam ser produzidos, e se há integração com algum sistema que você já usa. Monte seu escopo aqui no site e respondemos com um valor fechado, sem compromisso.</p>
     </details>
     <details>
-      <summary>O que está incluso em todo projeto?<svg aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+      <summary>O que está incluso em todo projeto?<svg aria-hidden="true"><use href="#i-chevron"></use></svg></summary>
       <p>Registro do domínio, hospedagem, certificado de segurança HTTPS, versão para celular, otimização para buscadores e um período de ajustes após a entrega. Você recebe o site pronto e no ar, sem precisar contratar nada à parte.</p>
     </details>
     <details>
-      <summary>O domínio fica no meu nome?<svg aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+      <summary>O domínio fica no meu nome?<svg aria-hidden="true"><use href="#i-chevron"></use></svg></summary>
       <p>Sim. O domínio é registrado no seu nome ou no CNPJ da sua empresa, e você recebe todos os acessos. Se um dia quiser levar o site para outro fornecedor, ele é seu e vai com você. Você não fica preso a nós, e desconfie de quem não fizer assim.</p>
     </details>
     <details>
-      <summary>E se eu não gostar do layout?<svg aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+      <summary>E se eu não gostar do layout?<svg aria-hidden="true"><use href="#i-chevron"></use></svg></summary>
       <p>Você aprova o layout antes de partirmos para o desenvolvimento, e temos rodadas de ajuste até chegar no ponto. Ninguém desenvolve um site inteiro para o cliente descobrir no fim que não era aquilo.</p>
     </details>
     <details>
-      <summary>Quanto tempo leva?<svg aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+      <summary>Quanto tempo leva?<svg aria-hidden="true"><use href="#i-chevron"></use></svg></summary>
       <p>Até 8 dias na maioria dos projetos, e landing pages costumam ficar prontas antes disso. O prazo exato é definido junto com o orçamento, por escrito, antes de começar. Um detalhe para ser justo com os dois lados: a contagem começa quando recebemos os textos, as fotos e as informações do seu negócio. Se esse material demorar, o prazo acompanha, e se você não tiver o conteúdo pronto, a gente ajuda a resolver isso também.</p>
     </details>
     <details>
-      <summary>Quem atualiza o site depois que ele está no ar?<svg aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+      <summary>Quem atualiza o site depois que ele está no ar?<svg aria-hidden="true"><use href="#i-chevron"></use></svg></summary>
       <p>Você escolhe. Podemos cuidar das atualizações em um plano de manutenção, ou deixar o site preparado para você mesmo alterar textos, fotos e informações. Explicamos as duas opções no orçamento para você decidir com clareza.</p>
     </details>
   </div>
 </section>
 
 <!-- ============================================================ CTA -->
-<section class="cta" id="contato" data-reveal>
+<section class="cta" id="contato" data-reveal="">
   <div class="cta__glow" aria-hidden="true"></div>
   <div class="cta__inner">
     <h2>Vamos tirar seu site do papel?</h2>
     <p class="lead">O orçamento é gratuito, sai sem compromisso, e a resposta costuma chegar em minutos.</p>
     <div style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center">
       <a href="https://wa.me/5541997411544?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20gostaria%20de%20um%20or%C3%A7amento." target="_blank" rel="noopener" class="btn btn--primary">
-        <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Falar no WhatsApp
+        <svg aria-hidden="true"><use href="#i-whatsapp"></use></svg>Falar no WhatsApp
       </a>
       <a href="mailto:Vertex.page@outlook.com?subject=Or%C3%A7amento%20de%20site" class="btn btn--ghost">
-        <svg aria-hidden="true"><use href="#i-mail"/></svg>Prefiro por e-mail
+        <svg aria-hidden="true"><use href="#i-mail"></use></svg>Prefiro por e-mail
       </a>
     </div>
   </div>
@@ -729,13 +823,13 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 <!-- ============================================================ RODAPÉ -->
 <footer class="footer">
   <a href="#hero" class="brand" aria-label="Vertex, voltar ao topo">
-    <svg aria-hidden="true"><use href="#i-mark"/></svg>
+    <svg aria-hidden="true"><use href="#i-mark"></use></svg>
     Vertex
   </a>
   <div class="footer__links">
-    <a href="https://wa.me/5541997411544?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20gostaria%20de%20um%20or%C3%A7amento." target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>WhatsApp</a>
-    <a href="https://instagram.com/Vertexpage" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-instagram"/></svg>Instagram</a>
-    <a href="mailto:Vertex.page@outlook.com"><svg aria-hidden="true"><use href="#i-mail"/></svg>E-mail</a>
+    <a href="https://wa.me/5541997411544?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20gostaria%20de%20um%20or%C3%A7amento." target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"></use></svg>WhatsApp</a>
+    <a href="https://instagram.com/Vertexpage" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-instagram"></use></svg>Instagram</a>
+    <a href="mailto:Vertex.page@outlook.com"><svg aria-hidden="true"><use href="#i-mail"></use></svg>E-mail</a>
   </div>
   <p class="footer__legal">
     Vertex, criação de sites · Curitiba, PR · Atendimento em todo o Brasil<br>
@@ -745,7 +839,7 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
 
 <a href="https://wa.me/5541997411544?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20gostaria%20de%20um%20or%C3%A7amento." target="_blank" rel="noopener" class="wa-float" aria-label="Falar no WhatsApp">
   <span class="wa-float__ring" aria-hidden="true"></span>
-  <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>
+  <svg aria-hidden="true"><use href="#i-whatsapp"></use></svg>
 </a>
 
 <script>
@@ -846,22 +940,67 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
     atualizar();
   })();
 
+  /* ---------- spotlight nos cards (segue ponteiro e toque) ---------- */
+  (function(){
+    var cards = document.querySelectorAll('.card');
+    /* Movimento reduzido: o brilho central (via :hover/:active no CSS) já basta,
+       sem rastrear o ponteiro. */
+    if (!cards.length || reduceMotion) return;
+    function move(card, e){
+      var r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    }
+    cards.forEach(function(card){
+      card.addEventListener('pointermove', function(e){ move(card, e); }, { passive:true });
+      /* No toque não existe hover: o tap acende o brilho no ponto tocado e ele
+         some pouco depois, então o efeito acontece de verdade no celular. */
+      card.addEventListener('pointerdown', function(e){ move(card, e); card.classList.add('is-lit'); }, { passive:true });
+      var off = function(){ setTimeout(function(){ card.classList.remove('is-lit'); }, 260); };
+      card.addEventListener('pointerup', off);
+      card.addEventListener('pointercancel', function(){ card.classList.remove('is-lit'); });
+    });
+  })();
+
   /* ---------- marca em partículas ---------- */
   (function(){
     var cvs = document.getElementById('markCanvas');
     var fallback = document.getElementById('markFallback');
-    if (!cvs) return;
+    if (!cvs || !fallback) return;
 
-    var ctx = cvs.getContext && cvs.getContext('2d');
-    if (!ctx){                       /* navegador sem canvas: cai no SVG estático */
-      cvs.hidden = true;
-      if (fallback) fallback.hidden = false;
-      return;
+    var raf = null, running = false;
+    /* V estático com peso, mostrado sempre que a animação não roda. */
+    function showFallback(fade){
+      fallback.style.display = 'flex';
+      cvs.style.display = 'none';
+      running = false;
+      if (raf){ cancelAnimationFrame(raf); raf = null; }
+      if (fade){
+        fallback.classList.add('is-fade');
+        requestAnimationFrame(function(){ fallback.classList.add('is-in'); });
+      }
     }
 
+    var ctx = cvs.getContext && cvs.getContext('2d');
+    /* Sem canvas, ou movimento reduzido: o V estático aparece (fade só no segundo). */
+    if (!ctx || reduceMotion){ showFallback(reduceMotion); return; }
+
+    /* Aparelho modesto ganha menos partículas, mas ainda anima. Nunca vira imagem morta. */
+    var lowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 4) ||
+                 (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+
     var TONE = [[217,164,65],[150,110,46]];
-    var P = [], W = 0, H = 0, t0 = 0, raf = null, running = false;
+    var P = [], W = 0, H = 0, t0 = 0, settled = false;
     var mx = -9999, my = -9999;
+
+    /* Posição inicial espalhada: usada na montagem e no replay por toque. */
+    function scatter(p){
+      var ang = Math.random() * Math.PI * 2;
+      var rad = Math.max(W, H) * (0.5 + Math.random() * 0.75);
+      p.x = W/2 + Math.cos(ang) * rad;
+      p.y = H/2 + Math.sin(ang) * rad;
+      p.vx = 0; p.vy = 0;
+    }
 
     function shapeData(size){
       var o = document.createElement('canvas');
@@ -884,23 +1023,21 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
       if (size < 40) return;
       var d = shapeData(size);
       var offX = (W - size) / 2, offY = (H - size) / 2;
-      var step = W < 480 ? 4 : 3;
+      var step = W < 480 ? (lowEnd ? 6 : 4) : (lowEnd ? 5 : 3);
       var apexX = size * 0.5, apexY = size * 0.83, maxD = Math.hypot(size, size);
 
       for (var y = 0; y < size; y += step){
         for (var x = 0; x < size; x += step){
           var i = (y * size + x) * 4;
           if (d[i + 3] < 128) continue;
-          var ang = Math.random() * Math.PI * 2;
-          var rad = Math.max(W, H) * (0.5 + Math.random() * 0.75);
-          P.push({
-            tx: offX + x, ty: offY + y,
-            x: W/2 + Math.cos(ang) * rad, y: H/2 + Math.sin(ang) * rad,
-            vx: 0, vy: 0,
+          var p = {
+            tx: offX + x, ty: offY + y, x: 0, y: 0, vx: 0, vy: 0,
             tone: d[i] > 190 ? 0 : 1,
             delay: (Math.hypot(x - apexX, y - apexY) / maxD) * 640 + Math.random() * 240,
             speed: 0.6 + Math.random() * 0.5
-          });
+          };
+          scatter(p);
+          P.push(p);
         }
       }
     }
@@ -919,19 +1056,6 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
       if (!sizeCanvas()) return;
       build();
       t0 = performance.now();
-    }
-
-    /* Marca já montada, em um único desenho, sem loop, sem deslocamento. */
-    function drawAtRest(){
-      ctx.clearRect(0, 0, W, H);
-      for (var tone = 0; tone < 2; tone++){
-        ctx.fillStyle = 'rgb(' + TONE[tone][0] + ',' + TONE[tone][1] + ',' + TONE[tone][2] + ')';
-        for (var i = 0; i < P.length; i++){
-          var p = P[i];
-          if (p.tone !== tone) continue;
-          ctx.fillRect(p.tx - 0.9, p.ty - 0.9, 1.8, 1.8);
-        }
-      }
     }
 
     /* Devolve true enquanto a partícula ainda tem trabalho a fazer. */
@@ -978,24 +1102,27 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
       raf = requestAnimationFrame(frame);
     }
 
-    /* Movimento reduzido: a marca surge montada, com um fade curto. Sem voo de
-       partículas, sem reação ao ponteiro, sem requestAnimationFrame. */
-    if (reduceMotion){
-      cvs.classList.add('mark-fade');
-    } else {
-      cvs.addEventListener('pointermove', function(e){
-        var r = cvs.getBoundingClientRect();
-        mx = e.clientX - r.left; my = e.clientY - r.top;
-        start();
-      });
-      cvs.addEventListener('pointerleave', function(){ mx = -9999; my = -9999; start(); });
+    /* Toque ou clique remonta o V. A microinteração é a mesma no desktop e no
+       celular, onde o hover não existe: encostar o dedo relança a montagem, e
+       arrastar o dedo repele as partículas pelo pointermove. */
+    function replay(){
+      if (!P.length) return;
+      for (var i = 0; i < P.length; i++) scatter(P[i]);
+      t0 = performance.now();
+      start();
     }
+    cvs.addEventListener('click', replay);
+    cvs.addEventListener('pointermove', function(e){
+      var r = cvs.getBoundingClientRect();
+      mx = e.clientX - r.left; my = e.clientY - r.top;
+      start();
+    });
+    cvs.addEventListener('pointerleave', function(){ mx = -9999; my = -9999; start(); });
 
-    /* O canvas pode ainda não ter altura no instante em que este script roda.
-       Medir 0 ali fazia build() não gerar partícula nenhuma, e o hero ficava
-       vazio para sempre, sem erro no console. O ResizeObserver dispara assim
-       que existe layout e a cada mudança real de tamanho, o que de quebra
-       cobre girar o celular e a barra de endereço aparecendo e sumindo. */
+    /* O canvas pode ainda não ter altura quando o script roda. O ResizeObserver
+       dispara assim que existe layout e a cada mudança real de tamanho, o que de
+       quebra cobre girar o celular e a barra de endereço surgindo e sumindo.
+       Até lá o V estático de base segue visível, então não há vão vazio. */
     var lastW = 0, lastH = 0, rt;
 
     function init(){
@@ -1004,13 +1131,13 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
       if (w === lastW && h === lastH) return;     /* nada mudou: não remonta  */
       lastW = w; lastH = h;
       resize();
-      if (reduceMotion){
-        drawAtRest();
-        requestAnimationFrame(function(){ cvs.classList.add('is-in'); });
-      } else {
-        start();
-      }
+      if (!P.length){ showFallback(false); return; }   /* não montou: cai no estático */
+      settled = true;
+      fallback.style.display = 'none';
+      start();
     }
+
+    cvs.style.display = 'block';                  /* precisa de layout para medir */
 
     if ('ResizeObserver' in window){
       new ResizeObserver(function(){
@@ -1022,8 +1149,12 @@ h3{font-size:var(--step-h3);letter-spacing:-.01em;font-weight:600}
       });
     }
     init();
+
+    /* Rede de segurança: se em 1,5s o layout nunca deu tamanho, volta o estático. */
+    setTimeout(function(){ if (!settled) showFallback(false); }, 1500);
   })();
 })();
 </script>
-</body>
-</html>
+
+
+</body></html>
