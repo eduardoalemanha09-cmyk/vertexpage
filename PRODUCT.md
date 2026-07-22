@@ -23,8 +23,10 @@ Contatos: WhatsApp (41) 99741-1544 · Vertex.page@outlook.com · Instagram @Vert
    métricas de volume ("150+ projetos") e percentuais de satisfação foram removidos por serem
    fictícios. Depoimento falso atribuído a pessoa nomeada é publicidade enganosa (CDC art. 37).
    Nada volta ao site sem confirmação explícita do Eduardo de que é real.
-2. **As maquetes do portfólio são conceitos**, não trabalhos entregues. A seção se chama
-   "Estudos de design" e declara isso no texto. Nunca rotular como cliente ou projeto real.
+2. **Sem portfólio de trabalhos que não existem.** A seção "Estudos de design" (3 maquetes
+   conceituais) foi removida a pedido do Eduardo (jul/2026) — "não temos templates prontos".
+   Não recriar maquetes fictícias nem rotular concept como cliente. Prova de trabalho = o
+   próprio site.
 3. **Arquivo único.** `index.html` com CSS e JS embutidos. Sem build, sem framework, sem
    dependência de pacote. `vercel.json` é o único arquivo de apoio.
 4. **Sem preço na página.** O caminho é o qualificador → WhatsApp com escopo já montado.
